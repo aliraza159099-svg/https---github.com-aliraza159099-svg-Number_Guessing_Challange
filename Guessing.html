@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Battle Game</title>
+    <style>
+        body {
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* --- START SCREEN OVERLAY --- */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .start-box {
+            background: rgb(45, 45, 45);
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            border: 2px solid rgb(60, 60, 60);
+        }
+
+        .start-box h1 {
+            color: yellow;
+            margin-top: 0;
+            font-size: 28px;
+        }
+
+        .start-box label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #ccc;
+        }
+
+        .start-box input {
+            padding: 10px;
+            font-size: 20px;
+            width: 150px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 5px;
+            background: #222;
+            color: white;
+            border: 1px solid #555;
+        }
+
+        .start-box button {
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            background: rgb(0, 120, 215);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .start-box button:hover {
+            background: rgb(0, 100, 190);
+        }
+
+        /* --- MAIN GAME FRAME --- */
+        .game-frame {
+            width: 500px;
+            height: 500px;
+            background-color: rgb(30, 30, 30);
+            display: none;
+            /* Hidden initially */
+            flex-direction: column;
+            box-sizing: border-box;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .title {
+            color: yellow;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .limit-display {
+            text-align: center;
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .center-panel {
+            display: flex;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .player-panel {
+            background-color: rgb(45, 45, 45);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .player-label {
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .score {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .p1-score {
+            color: cyan;
+        }
+
+        .p2-score {
+            color: orange;
+        }
+
+        .bottom-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .turn-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        button:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+
+        button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+
+        .btn1 {
+            background-color: rgb(0, 120, 215);
+        }
+
+        .btn2 {
+            background-color: rgb(200, 80, 0);
+        }
+
+        .restart-btn {
+            background-color: #555;
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .restart-btn:hover {
+            background-color: #666;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- START SCREEN (Asks for limit) -->
+    <div id="start-screen" class="overlay">
+        <div class="start-box">
+            <h1>Number Battle</h1>
+            <label for="limit-input">Enter Target Score (Limit):</label>
+            <input type="number" id="limit-input" value="100" min="10" max="1000">
+            <br>
+            <button id="start-btn">Start Game</button>
+        </div>
+    </div>
+
+    <!-- MAIN GAME AREA -->
+    <div class="game-frame" id="game-frame">
+        <div class="title">Number Battle</div>
+        <div class="limit-display">Target Score: <span id="target-display">100</span></div>
+
+        <div class="center-panel">
+            <div class="player-panel">
+                <div class="player-label">Player 1</div>
+                <div id="score1" class="score p1-score">0</div>
+            </div>
+            <div class="player-panel">
+                <div class="player-label">Player 2</div>
+                <div id="score2" class="score p2-score">0</div>
+            </div>
+        </div>
+
+        <div class="bottom-panel">
+            <div class="turn-buttons">
+                <button id="btn1" class="btn1">Player 1 Turn</button>
+                <button id="btn2" class="btn2">Player 2 Turn</button>
+            </div>
+            <button id="restart-btn" class="restart-btn">Restart Game</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. SOUND APIs (Web Audio & Web Speech)
+        // ==========================================
+
+        // Initialize Web Audio API
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        // Function to generate synthetic beeps
+        function playBeep(freq, duration, type = 'sine') {
+            if (audioCtx.state === 'suspended') audioCtx.resume(); // Ensure audio is running
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.type = type;
+            oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + duration);
+        }
+
+        // Sound Effects
+        function playScoreSound() { playBeep(600, 0.1, 'square'); }
+
+        function playWinSound() {
+            // Play a quick C-E-G major chord sequence
+            playBeep(523.25, 0.2, 'sine'); // C5
+            setTimeout(() => playBeep(659.25, 0.2, 'sine'), 150); // E5
+            setTimeout(() => playBeep(783.99, 0.4, 'sine'), 300); // G5
+        }
+
+        // Web Speech API for voice announcements
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop previous speech
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 1.1;
+                utterance.pitch = 1.1;
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // ==========================================
+        // 2. GAME LOGIC
+        // ==========================================
+
+        let score1 = 0;
+        let score2 = 0;
+        let gameOver = false;
+        let x = true; // Player 1 turn
+        let y = true; // Player 2 turn
+        let targetScore = 100;
+
+        const score1El = document.getElementById('score1');
+        const score2El = document.getElementById('score2');
+        const btn1 = document.getElementById('btn1');
+        const btn2 = document.getElementById('btn2');
+        const restartBtn = document.getElementById('restart-btn');
+        const startScreen = document.getElementById('start-screen');
+        const gameFrame = document.getElementById('game-frame');
+        const targetDisplay = document.getElementById('target-display');
+
+        function updateButtons() {
+            btn1.disabled = gameOver || !x;
+            btn2.disabled = gameOver || !y;
+        }
+
+        function resetGame() {
+            score1 = 0;
+            score2 = 0;
+            gameOver = false;
+            x = true;
+            y = true;
+            score1El.textContent = '0';
+            score2El.textContent = '0';
+            updateButtons();
+            speak("Game started. Player 1's turn.");
+        }
+
+        // Start Button Logic
+        document.getElementById('start-btn').addEventListener('click', () => {
+            const inputVal = parseInt(document.getElementById('limit-input').value);
+            if (inputVal > 0) {
+                targetScore = inputVal;
+                targetDisplay.textContent = targetScore;
+            }
+
+            // Hide start screen, show game
+            startScreen.style.display = 'none';
+            gameFrame.style.display = 'flex';
+
+            resetGame();
+        });
+
+        // Restart Button Logic
+        restartBtn.addEventListener('click', () => {
+            // Show start screen again to allow changing the limit
+            gameFrame.style.display = 'none';
+            startScreen.style.display = 'flex';
+            speak("Game restarted.");
+        });
+
+        // Player 1 Action
+        btn1.addEventListener('click', () => {
+            if (gameOver || !x) return;
+
+            const add = Math.floor(Math.random() * 8); // 0 to 7
+            score1 += add;
+            score1El.textContent = score1;
+
+            playScoreSound();
+
+            x = false;
+            y = true;
+            updateButtons();
+
+            if (!gameOver) speak("Player 2's turn.");
+            checkWinner();
+        });
+
+        // Player 2 Action
+        btn2.addEventListener('click', () => {
+            if (gameOver || !y) return;
+
+            const add = Math.floor(Math.random() * 8);
+            score2 += add;
+            score2El.textContent = score2;
+
+            playScoreSound();
+
+            y = false;
+            x = true;
+            updateButtons();
+
+            if (!gameOver) speak("Player 1's turn.");
+            checkWinner();
+        });
+
+        function checkWinner() {
+            if (score1 >= targetScore || score2 >= targetScore) {
+                gameOver = true;
+                playWinSound();
+
+                if (score1 >= targetScore) {
+                    score1El.textContent = "Winner!";
+                    speak("Player 1 wins the game!");
+                } else {
+                    score2El.textContent = "Winner!";
+                    speak("Player 2 wins the game!");
+                }
+                updateButtons();
+            }
+        }
+
+        // Initialize
+        updateButtons();
+    </script>
+</body>
+
+</html>
